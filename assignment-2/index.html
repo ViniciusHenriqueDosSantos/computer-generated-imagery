@@ -1,10 +1,26 @@
 <!DOCTYPE html>
-<html>
-    <body>
-        <p>Vinicius Henrique dos Santos</p>
-        <canvas id="main" width="600" height="600">
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Interação com o Mouse</title>
+</head>
 
-        </canvas>
-        <script src="main.js"></script>
-    </body>
+<body>
+
+    <canvas id="canvas" width="600" height="600"></canvas>
+
+    <div>
+        <p id="canvasCoordinates">
+            Canvas: (300, 300)
+        </p>
+
+        <p id="webglCoordinates">
+            WebGL: (0.000, 0.000)
+        </p>
+    </div>
+
+    <script src="webgl-setup.js"></script>
+    <script src="main.js"></script>
+
+</body>
 </html>
