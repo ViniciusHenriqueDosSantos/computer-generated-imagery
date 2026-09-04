@@ -10,11 +10,12 @@ const webglCoordinates =
 
 
 let vertices = [];
+let verticesBresenhan=[]
 let colors = [];
 let pointSizes = [];
 
-const DOT_COLOR = [1.0, 0.0, 0.0];
-const DOT_SIZE = 10.0;
+let DOT_COLOR = [1.0, 0.0, 0.0];
+let DOT_SIZE = 10.0;
 
 
 // --------------------------------------------------
@@ -30,6 +31,7 @@ gl.bufferData(
     new Float32Array(vertices),
     gl.STATIC_DRAW
 );
+
 
 const colorsBuffer = gl.createBuffer();
 
@@ -143,8 +145,46 @@ const numComponents = 2;
 
 gl.useProgram(program);
 
-function drawDot(x, y){
 
+
+
+  function bresenhan(){
+      let [ax, ay] = [vertices[0], vertices[1]];
+      const [bx, by] = [vertices[2], vertices[3]];
+
+      const size = 0.01;
+      const dx = Math.abs(bx - ax);
+      const dy = Math.abs(by - ay);
+      const sx = ax < bx ? size : -size;
+      const sy = ay < by ? size : -size;
+
+      let err = dx - dy;
+      const steps = Math.ceil(Math.max(dx, dy) / size);
+
+      for (let i = 0; i <= steps; i++) {
+          drawDot(ax, ay, 'bresenhan');
+          const e2 = 2 * err;
+          if (e2 > -dy) { err -= dy; ax += sx; }
+          if (e2 <  dx) { err += dx; ay += sy; }
+      }
+  }
+
+
+
+
+function drawDot(x, y,caller='not_bresenhan'){
+    if(vertices.length>=4 &&caller==='not_bresenhan'){
+        console.log("poppin")
+        console.log("Vertices Before: ",vertices)
+        vertices=vertices.filter(x=>!verticesBresenhan.includes(x))
+        verticesBresenhan=[]
+        vertices.splice(0,2)
+        console.log("Vertices After: ",vertices)
+
+    }
+    if(caller=='bresenhan'){
+        verticesBresenhan.push(x,y)
+    }
     vertices.push(x, y);
     colors.push(...DOT_COLOR);
     pointSizes.push(DOT_SIZE);
@@ -177,4 +217,147 @@ function drawDot(x, y){
         0,
         vertices.length / numComponents
     );
+
+    if(vertices.length===4&&caller=='not_bresenhan'){
+        bresenhan()
+    }
+    console.log("Vertices: ", vertices)
+    console.log("Drawing Dot", vertices.length)
 }
+
+
+
+
+// --------------------------------------------------
+// 10. INTERAÇÃO COM O TECLADO
+// --------------------------------------------------
+
+function repaintAll(newColor) {
+    DOT_COLOR = Array.from(newColor);
+    const dotCount = vertices.length / 2;
+    colors = [];
+    for (let i = 0; i < dotCount; i++) {
+        colors.push(...DOT_COLOR);
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorsBuffer);
+    gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array(colors),
+        gl.STATIC_DRAW
+    );
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program);
+    gl.drawArrays(gl.POINTS, 0, vertices.length / numComponents);
+}
+
+document.addEventListener(
+  "keydown",
+  keyboardClick,
+  false
+);
+
+function resizeAll(){
+    const dotCount = vertices.length / 2;
+    pointSizes = [];
+    for (let i = 0; i < dotCount; i++) {
+        pointSizes.push(DOT_SIZE);
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointSizesBuffer);
+    gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array(pointSizes),
+        gl.STATIC_DRAW
+    );
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program);
+    gl.drawArrays(gl.POINTS, 0, vertices.length / numComponents);
+}
+function keyboardClick(event) {
+    console.log("Click: ",event.key)
+  switch(event.key) {
+      case "ArrowUp":
+        DOT_SIZE+=5
+        resizeAll()
+        break;
+      case "ArrowDown":
+        DOT_SIZE-=5
+        resizeAll()
+        break;
+      case "0":
+          newColor = new Float32Array([
+              1.0, 1.0, 1.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "1":
+          newColor = new Float32Array([
+              1.0, 0.0, 0.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "2":
+          newColor = new Float32Array([
+              0.0, 1.0, 0.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "3":
+          newColor = new Float32Array([
+              0.0, 0.0, 1.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "4":
+          newColor = new Float32Array([
+              1.0, 1.0, 0.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "5":
+          newColor = new Float32Array([
+              1.0, 0.0, 1.0
+          ]);   
+          repaintAll(newColor);
+          break;
+
+      case "6":
+          newColor = new Float32Array([
+              0.0, 1.0, 1.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "7":
+          newColor = new Float32Array([
+              1.0, 0.5, 0.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "8":
+          newColor = new Float32Array([
+              0.5, 0.0, 1.0
+          ]);
+          repaintAll(newColor);
+          break;
+
+      case "9":
+          newColor = new Float32Array([
+              1.0, 0.4, 0.7
+          ]);
+          repaintAll(newColor);
+          
+          break;
+
+      default:
+          return;
+        }
+        
+    }   
